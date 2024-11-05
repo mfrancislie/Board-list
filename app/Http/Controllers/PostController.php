@@ -14,9 +14,14 @@ class PostController extends Controller
     {
         $search = $request->input('search');
         $searchBy = $request->input('search_by', 'title'); // Default to searching by title
+        $title = $request->input('title');
+        $content = $request->input('content');
+
+
 
         $posts = Post::query();
 
+     // filter by search input
         if ($search) {
             if ($searchBy === 'title') {
                 $posts->where('title', 'LIKE', "%{$search}%");
@@ -30,16 +35,38 @@ class PostController extends Controller
                 });
             }
         }
+    
+        // filter posts using input and dropdown
+        $posts->when($title,  function($query, $title){
+            return $query->where('title', 'LIKE', "%{$title}%");
+          })->when($content, function($query, $content){
+            return $query->where('content', 'LIKE', "%{$content}%");
+          });
+
 
         $posts = $posts->paginate(5); // Paginate with 5 items per page
 
+        // count posts today by created_at          
         $totalPostsToday = Post::whereDate('created_at', Carbon::today())->count();
+
+        $totalPosts = $posts->count();
+
+
+        // Get unique titles and contents for the dropdowns
+        $titles = Post::groupBy('title')->pluck('title');
+        $contents = Post::groupBy('content')->pluck('content');
 
         return view('posts.index', [
             'posts' => $posts,
             'search' => $search,
             'searchBy' => $searchBy,
-            'totalPostsToday' => $totalPostsToday
+            'title' => $title,
+            'content' => $content,
+            'titles' => $titles,
+            'contents' => $contents,
+            'totalPostsToday' => $totalPostsToday,
+            'totalPosts' => $totalPosts,
+    
         ]);
     }
 
@@ -71,11 +98,12 @@ class PostController extends Controller
         return view('posts.show', ['post' => $post]);
     }
 
-    public function destroy(Request $request)
+    public function destroy(Request $request, Post $post)
     {
         $ids = $request->input('ids', []);
         $deletedCount = Post::whereIn('id', $ids)->delete();
         $message = $deletedCount . ' post(s) have been deleted.';
         return redirect()->route('posts.index')->with('success', $message);
     }
+    
 }
