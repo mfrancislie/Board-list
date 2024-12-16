@@ -36,12 +36,17 @@ class PostController extends Controller
             }
         }
     
-        // filter posts using input and dropdown
+        // filter posts using input-dropdown
         $posts->when($title,  function($query, $title){
             return $query->where('title', 'LIKE', "%{$title}%");
           })->when($content, function($query, $content){
             return $query->where('content', 'LIKE', "%{$content}%");
           });
+          
+          // Get unique titles and contents for the dropdowns
+          $titles = Post::groupBy('title')->pluck('title');
+          $contents = Post::groupBy('content')->pluck('content');
+          
 
 
         $posts = $posts->paginate(5); // Paginate with 5 items per page
@@ -51,12 +56,7 @@ class PostController extends Controller
 
         $totalPosts = $posts->count();
 
-
-        // Get unique titles and contents for the dropdowns
-        $titles = Post::groupBy('title')->pluck('title');
-        $contents = Post::groupBy('content')->pluck('content');
-
-        return view('posts.index', [
+        return view('posts.index1', [
             'posts' => $posts,
             'search' => $search,
             'searchBy' => $searchBy,

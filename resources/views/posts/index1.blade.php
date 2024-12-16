@@ -1,5 +1,5 @@
 
-{{-- filter posts title and content using by search --}}
+{{--  filter by search input --}}
 <form action="{{ route('posts.index') }}" method="GET">
     <select name="search_by">
         <option value="title" {{ request('search_by') == 'title' ? 'selected' : '' }}>Title</option>
@@ -23,7 +23,7 @@
     <button type="submit">Filter</button>
 </form>
 
-{{-- filter posts by dropdown --}}
+{{-- filter posts using input and dropdown --}}
 <form action="{{ route('posts.index') }}" method="GET">
     <label for="title">Title:</label>
     <select name="title" id="title">
